@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./App.css";
 import ipfs from "./ipfs";
 import Web3 from "web3";
@@ -10,8 +10,24 @@ import {
 const BLOCKCHAIN_NETWORK_URL = "http://localhost:8545";
 
 function App() {
+  const [web3, setWeb3] = useState();
+  const [contractInstance, setContractInstance] = useState();
+
   const [file, setFile] = useState();
   const [ipfsImagePath, setIpfsImagePath] = useState();
+
+  useEffect(() => {
+    setWeb3(new Web3(BLOCKCHAIN_NETWORK_URL)); 
+  }, []);
+
+  useEffect(() => {
+    if (web3) {
+      setContractInstance(new web3.eth.Contract(
+        IMAGE_HASH_STORAGE_ABI,
+        IMAGE_HASH_STORAGE_ADDRESS
+      ));
+    }
+  }, [web3]);
 
   const onFileChange = (e) => {
     console.log(e.target.files[0]);
@@ -28,14 +44,9 @@ function App() {
     const result = await ipfs.add(file);
     console.log("IPFS image path", result.path);
 
-    const web3 = new Web3(BLOCKCHAIN_NETWORK_URL);
-    const hashStorageContract = new web3.eth.Contract(
-      IMAGE_HASH_STORAGE_ABI,
-      IMAGE_HASH_STORAGE_ADDRESS
-    );
     const accounts = await web3.eth.getAccounts();
 
-    hashStorageContract.methods
+    contractInstance.methods
       .setHash(web3.utils.fromAscii(result.path))
       .send({from: accounts[0]})
       .on("receipt", (receipt) => {
@@ -46,13 +57,7 @@ function App() {
   };
 
   const onShowImageClick = async () => {
-    const web3 = new Web3(BLOCKCHAIN_NETWORK_URL);
-    const hashStorageContract = new web3.eth.Contract(
-      IMAGE_HASH_STORAGE_ABI,
-      IMAGE_HASH_STORAGE_ADDRESS
-    );
-
-    const imageHash = await hashStorageContract.methods.getHash().call();
+    const imageHash = await contractInstance.methods.getHash().call();
     setIpfsImagePath(web3.utils.toAscii(imageHash));
   };
 
