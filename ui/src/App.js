@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import "./App.css";
 import ipfs from "./ipfs";
 import Web3 from "web3";
 import {
@@ -17,15 +16,17 @@ function App() {
   const [ipfsImagePath, setIpfsImagePath] = useState();
 
   useEffect(() => {
-    setWeb3(new Web3(BLOCKCHAIN_NETWORK_URL)); 
+    setWeb3(new Web3(BLOCKCHAIN_NETWORK_URL));
   }, []);
 
   useEffect(() => {
     if (web3) {
-      setContractInstance(new web3.eth.Contract(
-        IMAGE_HASH_STORAGE_ABI,
-        IMAGE_HASH_STORAGE_ADDRESS
-      ));
+      setContractInstance(
+        new web3.eth.Contract(
+          IMAGE_HASH_STORAGE_ABI,
+          IMAGE_HASH_STORAGE_ADDRESS
+        )
+      );
     }
   }, [web3]);
 
@@ -48,7 +49,7 @@ function App() {
 
     contractInstance.methods
       .setHash(web3.utils.fromAscii(result.path))
-      .send({from: accounts[0]})
+      .send({ from: accounts[0] })
       .on("receipt", (receipt) => {
         alert(
           `Image uploaded and saved successfully!\n${receipt.transactionHash}`
@@ -62,20 +63,45 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <form onSubmit={handleImageUpload}>
-          <input type="file" onChange={onFileChange} />
-          <button type="submit">Upload image</button>
-        </form>
-        <button onClick={onShowImageClick}>Show image on IPFS</button>
-        {ipfsImagePath && (
-          <section>
-            <h4>IPFS image</h4>
-            <img src={`https://ipfs.io/ipfs/${ipfsImagePath}`} alt="IPFS hosted" />
-          </section>
-        )}
-      </header>
+    <div className="container">
+      <form onSubmit={handleImageUpload}>
+        <div className="row mt-3">
+          <div className="col-sm-8 offset-sm-2">
+            <label htmlFor="imgFile">File to upload to IPFS</label>
+            <div className="input-group">
+              <input
+                id="imgFile"
+                type="file"
+                className="form-control"
+                onChange={onFileChange}
+              />
+              <button type="submit" className="btn btn-outline-primary">
+                Upload image
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+      <section className="mt-3">
+        <div className="row">
+          <div className="col-sm-12 text-center">
+            <button className="btn btn-primary" onClick={onShowImageClick}>
+              Show image on IPFS
+            </button>
+          </div>
+        </div>
+        <div className="row">
+          {ipfsImagePath && (
+            <div className="col-sm-12 mt-2 text-center">
+              <h4>IPFS image</h4>
+              <img
+                src={`https://ipfs.io/ipfs/${ipfsImagePath}`}
+                alt="IPFS hosted"
+              />
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
